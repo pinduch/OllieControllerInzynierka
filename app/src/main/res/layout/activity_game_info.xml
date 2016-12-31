@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_game_info"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.android.projects.mateusz.olliecontroller.GameInfoActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.25"
+            app:srcCompat="@drawable/ollie_logo"
+            android:id="@+id/imageView"
+            style="@style/image_view"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.6"
+            android:layout_marginTop="15dp">
+
+            <TextView
+                android:text="Enter your user name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView2"
+                android:textSize="18sp"
+                android:fontFamily="casual" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/txtUsername"
+                style="@style/edit_text"
+                android:background="@drawable/my_edit_text"
+                android:textAlignment="center"
+                android:singleLine="true" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+
+                <CheckBox
+                    android:layout_width="0dp"
+                    android:id="@+id/chbUsernameAvailable"
+                    android:layout_weight="0.6"
+                    android:textColor="@android:color/black"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="textStart"
+                    android:fontFamily="casual"
+                    android:textSize="20sp"
+                    android:textStyle="normal|bold"
+                    android:clickable="false"
+                    android:text="Not available"
+                    android:checked="false" />
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/progressBarCheckingUsername"
+                    android:visibility="gone"
+                    android:layout_weight="0.4"
+                    android:layout_margin="10dp"/>
+
+                <Button
+                    android:text="Check"
+                    android:layout_width="0dp"
+                    android:id="@+id/btnCheck"
+                    android:layout_weight="0.4"
+                    style="@style/button_text"
+                    android:background="@drawable/my_button"
+                    android:textSize="18sp"
+                    android:onClick="checkUsernameAvailability"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+
+                <CheckBox
+                    android:layout_width="0dp"
+                    android:id="@+id/chbServerConnection"
+                    android:layout_weight="0.6"
+                    android:textColor="@android:color/black"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="textStart"
+                    android:fontFamily="casual"
+                    android:textSize="20sp"
+                    android:textStyle="normal|bold"
+                    android:clickable="false"
+                    android:text="No connection"
+                    android:checked="false" />
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/progressBarConnectingToServer"
+                    android:visibility="gone"
+                    android:layout_weight="0.4"
+                    android:layout_margin="10dp"/>
+
+                <Button
+                    android:text="Connect"
+                    android:layout_width="0dp"
+                    android:id="@+id/btnConnect"
+                    android:layout_weight="0.4"
+                    style="@style/button_text"
+                    android:background="@drawable/my_button"
+                    android:textSize="18sp"
+                    android:onClick="connectToServer"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <CheckBox
+                android:text="FREE RIDE"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/chbFreeRide"
+                style="@style/edit_text"
+                android:textAlignment="textStart"
+                android:checked="false"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="10dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.15">
+
+            <Button
+                android:text="Back"
+                android:layout_width="wrap_content"
+                android:id="@+id/button2"
+                style="@style/button_text"
+                android:background="@drawable/my_button"
+                android:textSize="24sp"
+                android:onClick="backToMainMenu"/>
+
+            <Button
+                android:text="Start"
+                android:layout_width="match_parent"
+                android:id="@+id/btnStart"
+                style="@style/button_text"
+                android:background="@drawable/my_button"
+                android:textSize="24sp"
+                android:enabled="false"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
