@@ -1,5 +1,6 @@
 package com.android.projects.mateusz.olliecontroller;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,9 +13,13 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.android.projects.mateusz.olliecontroller.common.Constant;
 import com.android.projects.mateusz.olliecontroller.common.ServerRequest;
+import com.android.projects.mateusz.olliecontroller.model.ClientModel;
+
+import java.util.concurrent.ExecutionException;
 
 public class GameInfoActivity extends AppCompatActivity {
 
@@ -32,7 +37,8 @@ public class GameInfoActivity extends AppCompatActivity {
     private View decorView;
 
     private TCPClient tcpClient;
-    private GameInfoState gameInfoState;
+    private ClientModel clientModel;
+    private boolean startPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +56,8 @@ public class GameInfoActivity extends AppCompatActivity {
         });
 
         initElements();
+        clientModel = ClientModel.getInstance();
+        startPlay = false;
     }
 
     @Override
@@ -64,11 +72,17 @@ public class GameInfoActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Method which send request to server to check if provided username is available.
+     *
+     * @param view
+     */
     public void checkUsernameAvailability(View view){
-        chbUsernameAvailable.setChecked(!chbUsernameAvailable.isChecked());
+//        chbUsernameAvailable.setChecked(!chbUsernameAvailable.isChecked());
         new AsyncTask<Void, Void, Void>() {
 
             String username;
+            boolean exist;
 
             @Override
             protected void onPreExecute() {
@@ -79,8 +93,20 @@ public class GameInfoActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... params) {
-                tcpClient.sendMessageToServer("CHECK USERNAME");
-                tcpClient.sendMessageToServer(username);
+                if (tcpClient.isConnectionWithServer() && !username.isEmpty()) {
+
+                    clientModel.setServerResponse(null);
+
+                    tcpClient.sendMessageToServer(ServerRequest.CHECK_USERNAME);
+
+                    tcpClient.sendMessageToServer(username);
+
+                    while (clientModel.getServerResponse() == null) {}
+
+                    if (clientModel.getServerResponse().equals(ServerRequest.TRUE)) exist = true;
+                    else exist = false;
+
+                }
                 return null;
             }
 
@@ -88,10 +114,31 @@ public class GameInfoActivity extends AppCompatActivity {
             protected void onPostExecute(Void result) {
                 btnCheck.setVisibility(View.VISIBLE);
                 progressBarCheckingUsername.setVisibility(View.GONE);
+
+                if(!tcpClient.isConnectionWithServer()) {
+                    chbServerConnection.setChecked(false);
+                    Toast.makeText(GameInfoActivity.this, Constant.LOST_CONNECTION, Toast.LENGTH_SHORT).show();
+                }
+
+                if (username.isEmpty()) {
+                    Toast.makeText(GameInfoActivity.this, Constant.USERNAME_EMPTY, Toast.LENGTH_SHORT).show();
+                    chbUsernameAvailable.setChecked(false);
+                } else {
+                    chbUsernameAvailable.setChecked(!exist);
+                    if (exist)
+                        Toast.makeText(GameInfoActivity.this, Constant.USERNAME_NOT_AVAILABLE_TOAST, Toast.LENGTH_SHORT).show();
+                    else
+                        Toast.makeText(GameInfoActivity.this, Constant.USERNAME_AVAILABLE_TOAST, Toast.LENGTH_SHORT).show();
+                }
             }
         }.execute();
     }
 
+    /**
+     * Method which try to connect with server.
+     *
+     * @param view
+     */
     public void connectToServer(View view){
         new AsyncTask<Void, Void, Void>() {
 
@@ -103,7 +150,7 @@ public class GameInfoActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... params) {
-                tcpClient = TCPClient.getInstance();
+                tcpClient = new TCPClient();
                 tcpClient.start();
                 try {
                     tcpClient.join();
@@ -130,6 +177,27 @@ public class GameInfoActivity extends AppCompatActivity {
 
         }.execute();
 
+    }
+
+    public void startPlaying(View view){
+
+        if ( tcpClient != null ) {
+            if (tcpClient.isConnectionWithServer()) {
+                Intent intent = new Intent(this, PlayingActivity.class);
+                TCPClient.setInstance(tcpClient);
+                clientModel.setActualUserName(txtUsername.getText().toString());
+                startPlay = true;
+                startActivity(intent);
+                finish();
+            }
+        } else if (chbFreeRide.isChecked()) {
+            Intent intent = new Intent(this, PlayingActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            chbServerConnection.setChecked(false);
+            Toast.makeText(GameInfoActivity.this, Constant.LOST_CONNECTION, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void initElements(){
@@ -234,7 +302,7 @@ public class GameInfoActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-        if (tcpClient.getTcpConnectionState().equals(TCPClient.TcpConnectionState.CONNECT))
+        if (tcpClient != null && !startPlay)
             tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
         super.onDestroy();
     }

@@ -17,6 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Repository for joystick
+    repositories {
+        maven {
+            url "https://jitpack.io"
+        }
+    }
 }
 
 dependencies {
@@ -28,4 +34,9 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:support-v4:24.2.1'
     testCompile 'junit:junit:4.12'
+
+    // dependency for joystick
+    compile 'com.github.erz05:JoyStick:dcac1a228c'
+
+
 }

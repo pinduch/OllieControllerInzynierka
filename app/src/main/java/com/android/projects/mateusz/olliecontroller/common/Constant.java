@@ -16,13 +16,20 @@ public class Constant {
             |View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
             |View.SYSTEM_UI_FLAG_FULLSCREEN
             |View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-    public static String SETTINGS_ALERT_TITLE = "Saving settings!";
-    public static String SETTING_ALERT_MESSAGE = "Are you sure you want to save your changes?";
-    public static String SETTINGS_SHARED_PREFERENCES = "com.android.projects.mateusz.olliecontroller.settings";
-    public static String HOST_ADDRESS_KEY = "host address";
-    public static String USERNAME_AVAILABLE = "Available";
-    public static String USERNAME_NOT_AVAILABLE = "Not Available";
-    public static String SERVER_CONNECTED = "Connected";
-    public static String SERVER_NO_CONNECTION = "No connection";
+    public static final String SETTINGS_ALERT_TITLE = "Saving settings!";
+    public static final String SETTING_ALERT_MESSAGE = "Are you sure you want to save your changes?";
+    public static final String SETTINGS_SHARED_PREFERENCES = "com.android.projects.mateusz.olliecontroller.settings";
+    public static final String HOST_ADDRESS_KEY = "host address";
+    public static final String USERNAME_AVAILABLE = "Available";
+    public static final String USERNAME_NOT_AVAILABLE = "Not Available";
+    public static final String USERNAME_AVAILABLE_TOAST = "Username available.";
+    public static final String USERNAME_NOT_AVAILABLE_TOAST = "Sorry, username is already taken.";
+    public static final String SERVER_CONNECTED = "Connected";
+    public static final String SERVER_NO_CONNECTION = "No connection";
+    public static final String LOST_CONNECTION = "Lost connection with server.";
+    public static final String USERNAME_EMPTY = "Username can not be empty.";
+    public static final float JOYSTICK_SIZE_BY_SCREEN_PERCENT = 0.95f;
+    public static final int REQUEST_CODE_LOCATION_PERMISSION = 42;
+
 }
 

@@ -1,6 +1,10 @@
 package com.android.projects.mateusz.olliecontroller;
 
+import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.support.v7.app.AppCompatActivity;
+import android.widget.CheckBox;
 
 import com.android.projects.mateusz.olliecontroller.common.ServerRequest;
 import com.android.projects.mateusz.olliecontroller.model.ClientModel;
@@ -9,8 +13,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.Callable;
 
 /**
  * Created by Mateusz on 19.11.2016.
@@ -18,7 +24,7 @@ import java.net.Socket;
  * TCP Client class.
  */
 
-public class TCPClient extends Thread {
+public class TCPClient extends Thread implements Serializable {
 
     public enum TcpConnectionState {CONNECT, DISCONNECT}
 
@@ -28,9 +34,15 @@ public class TCPClient extends Thread {
     private ClientModel clientModel;
     private Socket socket;
 
+    private String response;
+
+
     private static TCPClient instance = null;
     private TcpConnectionState tcpConnectionState;
 
+    public static void setInstance(TCPClient tcpClient){
+        instance = tcpClient;
+    }
 
     public static TCPClient getInstance(){
         if (instance == null){
@@ -39,10 +51,17 @@ public class TCPClient extends Thread {
         return instance;
     }
 
-    public static TCPClient reset(){
-        instance = new TCPClient();
-        return instance;
-    }
+//    public static TCPClient getInstance(){
+//        if (instance == null){
+//            instance = new TCPClient();
+//        }
+//        return instance;
+//    }
+//
+//    public static TCPClient reset(){
+//        instance = new TCPClient();
+//        return instance;
+//    }
 
 
     /**
@@ -78,7 +97,7 @@ public class TCPClient extends Thread {
             sendMessageToServer(Build.MODEL);
 
         } catch (IOException e) {
-            instance = null;
+//            instance = null;
             e.printStackTrace();
         }
     }
@@ -95,7 +114,12 @@ public class TCPClient extends Thread {
                         serverResponse = in.readLine();
                         if (serverResponse != null) {
                             clientModel.setServerResponse(serverResponse);
+
+                            if (serverResponse.equals(ServerRequest.SERVER_SHUTDOWN)){
+                                closeSocket();
+                            }
                         }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -104,13 +128,40 @@ public class TCPClient extends Thread {
         }).start();
     }
 
+
     /**
      * Method which allow to send data to server.
      *
      * @param messageToSend - String data to send.
      */
     public void sendMessageToServer(String messageToSend){
-        out.println(messageToSend);
+        if (tcpConnectionState.equals(TcpConnectionState.CONNECT)) {
+            out.println(messageToSend);
+        }
+    }
+
+    /**
+     * Method to check if client is connected to server.
+     *
+     * @return
+     */
+    public boolean isConnectionWithServer(){
+        if ( tcpConnectionState.equals(TcpConnectionState.CONNECT))
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * Method to close socket.
+     */
+    public void closeSocket(){
+        try {
+            if (socket != null) socket.close();
+            tcpConnectionState = TcpConnectionState.DISCONNECT;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

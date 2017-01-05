@@ -169,7 +169,8 @@
                 style="@style/button_text"
                 android:background="@drawable/my_button"
                 android:textSize="24sp"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:onClick="startPlaying"/>
 
         </LinearLayout>
     </LinearLayout>

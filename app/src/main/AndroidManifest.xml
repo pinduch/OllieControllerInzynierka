@@ -21,7 +21,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".StartApplicationActivity"
+        <activity
+            android:name=".StartApplicationActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,11 +30,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".SettingsActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".GameInfoActivity"
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SettingsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".GameInfoActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".PlayingActivity"
             android:screenOrientation="portrait" />
     </application>
 
