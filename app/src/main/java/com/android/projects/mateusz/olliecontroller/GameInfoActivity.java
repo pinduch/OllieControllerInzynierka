@@ -59,7 +59,7 @@ public class GameInfoActivity extends AppCompatActivity {
         initElements();
         clientModel = ClientModel.getInstance();
         tcpClient = TCPClient.getInstance();
-        if ( tcpClient != null ){
+        if ( tcpClient != null && tcpClient.isConnectionWithServer()){
             chbServerConnection.setChecked(true);
         }
         startPlay = false;
@@ -198,6 +198,7 @@ public class GameInfoActivity extends AppCompatActivity {
                         break;
                     case DISCONNECT:
                         chbServerConnection.setChecked(false);
+                        tcpClient = null;
                         break;
                 }
                 TCPClient.setInstance(tcpClient);

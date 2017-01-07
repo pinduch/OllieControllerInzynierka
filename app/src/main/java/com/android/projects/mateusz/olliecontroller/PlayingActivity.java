@@ -38,6 +38,7 @@ public class PlayingActivity extends AppCompatActivity {
 
     private boolean startRide = false;
     private boolean freeRide;
+    private boolean stopConnecting = false;
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -123,6 +124,7 @@ public class PlayingActivity extends AppCompatActivity {
                     if ( ollie.getConvenienceRobot() != null ){
                         if ( ollie.getConvenienceRobot().isConnected() ) break;
                     }
+                    if (stopConnecting) break;
                 }
                 return null;
             }
@@ -188,6 +190,8 @@ public class PlayingActivity extends AppCompatActivity {
     }
 
     public void backToMainMenu(View view){
+        if (ollie.isDiscovery()) ollie.stopDiscovery();
+        stopConnecting = true;
         finish();
     }
 

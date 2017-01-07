@@ -94,11 +94,17 @@ public class OllieController {
         }
     }
 
-    private void stopDiscovery(){
+
+    public void stopDiscovery(){
         discoveryAgent.stopDiscovery();
         discoveryAgent.removeDiscoveryListener(discoveryAgentEventListener);
         discoveryAgent.removeRobotStateListener(robotChangedStateListener);
         discoveryAgent = null;
+    }
+
+    public boolean isDiscovery(){
+        if (discoveryAgent.isDiscovering()) return true;
+        else return false;
     }
 
     private DiscoveryAgentEventListener discoveryAgentEventListener = new DiscoveryAgentEventListener() {
