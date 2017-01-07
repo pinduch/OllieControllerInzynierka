@@ -45,24 +45,13 @@ public class TCPClient extends Thread implements Serializable {
     }
 
     public static TCPClient getInstance(){
-        if (instance == null){
-            instance = new TCPClient();
-        }
-        return instance;
-    }
-
-//    public static TCPClient getInstance(){
-//        if (instance == null){
+        if (instance != null){
+            return instance;
 //            instance = new TCPClient();
-//        }
-//        return instance;
-//    }
-//
-//    public static TCPClient reset(){
-//        instance = new TCPClient();
-//        return instance;
-//    }
+        } else
+            return null;
 
+    }
 
     /**
      * TCPClient class constructor.

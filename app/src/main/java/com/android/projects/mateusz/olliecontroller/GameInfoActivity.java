@@ -1,9 +1,11 @@
 package com.android.projects.mateusz.olliecontroller;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 
 public class GameInfoActivity extends AppCompatActivity {
 
-    public enum GameInfoState {NO_CONNECTION, CONNECTED, USERNAME_AVAILABLE, FREE_RIDE}
 
     private CheckBox chbServerConnection;
     private CheckBox chbUsernameAvailable;
@@ -57,6 +58,10 @@ public class GameInfoActivity extends AppCompatActivity {
 
         initElements();
         clientModel = ClientModel.getInstance();
+        tcpClient = TCPClient.getInstance();
+        if ( tcpClient != null ){
+            chbServerConnection.setChecked(true);
+        }
         startPlay = false;
     }
 
@@ -125,13 +130,33 @@ public class GameInfoActivity extends AppCompatActivity {
                     chbUsernameAvailable.setChecked(false);
                 } else {
                     chbUsernameAvailable.setChecked(!exist);
-                    if (exist)
-                        Toast.makeText(GameInfoActivity.this, Constant.USERNAME_NOT_AVAILABLE_TOAST, Toast.LENGTH_SHORT).show();
-                    else
+                    if (!exist)
                         Toast.makeText(GameInfoActivity.this, Constant.USERNAME_AVAILABLE_TOAST, Toast.LENGTH_SHORT).show();
+                    else {
+                        usernameAlert();
+                    }
                 }
             }
         }.execute();
+    }
+
+    private void usernameAlert() {
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle(Constant.USERNAME_EXIST_ALERT_TITLE);
+        alertDialog.setMessage(Constant.USERNAME_EXIST_ALERT_MESSAGE);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                chbUsernameAvailable.setChecked(true);
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     /**
@@ -150,12 +175,14 @@ public class GameInfoActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... params) {
-                tcpClient = new TCPClient();
-                tcpClient.start();
-                try {
-                    tcpClient.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if ( tcpClient == null ) {
+                    tcpClient = new TCPClient();
+                    tcpClient.start();
+                    try {
+                        tcpClient.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return null;
             }
@@ -173,6 +200,7 @@ public class GameInfoActivity extends AppCompatActivity {
                         chbServerConnection.setChecked(false);
                         break;
                 }
+                TCPClient.setInstance(tcpClient);
             }
 
         }.execute();
@@ -181,18 +209,23 @@ public class GameInfoActivity extends AppCompatActivity {
 
     public void startPlaying(View view){
 
+        Intent intent = new Intent(this, PlayingActivity.class);
+        intent.putExtra(Constant.FREE_RIDE, chbFreeRide.isChecked());
+
         if ( tcpClient != null ) {
             if (tcpClient.isConnectionWithServer()) {
-                Intent intent = new Intent(this, PlayingActivity.class);
-                TCPClient.setInstance(tcpClient);
-                clientModel.setActualUserName(txtUsername.getText().toString());
+                tcpClient.sendMessageToServer(ServerRequest.USERNAME);
+                tcpClient.sendMessageToServer(txtUsername.getText().toString());
                 startPlay = true;
                 startActivity(intent);
                 finish();
             }
         } else if (chbFreeRide.isChecked()) {
-            Intent intent = new Intent(this, PlayingActivity.class);
             startActivity(intent);
+            if (tcpClient != null){
+                tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
+                TCPClient.setInstance(null);
+            }
             finish();
         } else {
             chbServerConnection.setChecked(false);
@@ -302,8 +335,8 @@ public class GameInfoActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-        if (tcpClient != null && !startPlay)
-            tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
+//        if (tcpClient != null && !startPlay)
+//            tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
         super.onDestroy();
     }
 

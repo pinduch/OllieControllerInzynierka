@@ -30,6 +30,16 @@ public class Constant {
     public static final String USERNAME_EMPTY = "Username can not be empty.";
     public static final float JOYSTICK_SIZE_BY_SCREEN_PERCENT = 0.95f;
     public static final int REQUEST_CODE_LOCATION_PERMISSION = 42;
+    public static final String FREE_RIDE = "FREE_RIDE";
+    public static final String BLUETOOTH_NFC_TITLE = "Bluetooth & NFC";
+    public static final String BLUETOOTH_NFC_MESSAGE = "Please turn on bluetooth and NFC to start game.";
+    public static final String BLUETOOTH_TITLE = "Bluetooth";
+    public static final String BLUETOOTH_MESSAGE = "Please turn on bluetooth to start game.";
+    public static final String NFC_TITLE = "NFC";
+    public static final String NFC_MESSAGE = "Please turn on NFC to start game.";
+    public static final String USERNAME_EXIST_ALERT_TITLE = "Username unavailable";
+    public static final String USERNAME_EXIST_ALERT_MESSAGE = "Do you want to use existing username ?";
+
 
 }
 

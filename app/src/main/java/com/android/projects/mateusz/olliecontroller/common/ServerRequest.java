@@ -13,4 +13,8 @@ public class ServerRequest {
     public static final String OK = "OK";
     public static final String TRUE = "TRUE";
     public static final String FALSE = "FALSE";
+    public static final String START_RACE = "START";
+    public static final String END_RACE = "FINISH";
+    public static final String USERNAME = "USERNAME";
+
 }

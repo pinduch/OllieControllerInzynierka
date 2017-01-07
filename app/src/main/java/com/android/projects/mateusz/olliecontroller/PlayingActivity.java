@@ -1,12 +1,12 @@
 package com.android.projects.mateusz.olliecontroller;
 //
+import android.content.Intent;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,25 +20,6 @@ import android.widget.TextView;
 
 import com.android.projects.mateusz.olliecontroller.common.Constant;
 import com.android.projects.mateusz.olliecontroller.common.ServerRequest;
-import com.android.projects.mateusz.olliecontroller.model.ClientModel;
-import com.orbotix.ConvenienceRobot;
-import com.orbotix.Ollie;
-import com.orbotix.async.AsyncMessage;
-import com.orbotix.async.CollisionDetectedAsyncMessage;
-import com.orbotix.async.DeviceSensorAsyncMessage;
-import com.orbotix.common.DiscoveryAgent;
-import com.orbotix.common.DiscoveryAgentEventListener;
-import com.orbotix.common.DiscoveryException;
-import com.orbotix.common.ResponseListener;
-import com.orbotix.common.Robot;
-import com.orbotix.common.RobotChangedStateListener;
-import com.orbotix.common.sensor.DeviceSensorsData;
-import com.orbotix.common.sensor.SensorFlag;
-import com.orbotix.le.DiscoveryAgentLE;
-import com.orbotix.response.DeviceResponse;
-import com.orbotix.subsystem.SensorControl;
-
-import java.util.List;
 
 
 public class PlayingActivity extends AppCompatActivity {
@@ -49,96 +30,74 @@ public class PlayingActivity extends AppCompatActivity {
     public TextView labelConnecting;
     public ProgressBar progressBarConnecting;
     public Button btnMoveBack;
-
-    private DiscoveryAgent discoveryAgent;
-    private ConvenienceRobot convenienceRobot;
-    private boolean calibration = false;
+    public Button btnEndRace;
+    public Button btnExitToMainMenu;
 
     private TCPClient tcpClient;
-    private ClientModel clientModel;
+    private OllieController ollie;
 
-    private boolean collisionDetected = false;
-    private int toCollisionCountDetectReset = 0;
-    private boolean finishRide = false;
     private boolean startRide = false;
+    private boolean freeRide;
 
-    private long startTime = 0L;
-    private Handler customHandler = new Handler();
-    long timeInMilliseconds = 0L;
-    long timeSwapBuff = 0L;
-    long updatedTime = 0L;
-    private String rideTime = null;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(Constant.UI_OPTIONS);
         setContentView(R.layout.activity_playing);
 
+        freeRide = getIntent().getBooleanExtra(Constant.FREE_RIDE, false);
+
+        ollie = OllieController.getInstance();
         tcpClient = TCPClient.getInstance();
-        clientModel = ClientModel.getInstance();
         startRide = false;
 
         initialElements();
         initialJoyStick();
         showConnectingElements();
-        startDiscovery();
+        if (!ollie.isConnected()) {
+            ollie.startDiscovery(this);
+        }
         connectToOllie();
 
         chbCalibrate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                calibration = isChecked;
-                convenienceRobot.calibrating(calibration);
+                ollie.setCalibration(isChecked);
                 if ( !isChecked ) joyStick.startPosition();
             }
         });
-
-
 
         btnMoveBack = (Button) findViewById(R.id.btnMoveBack);
         btnMoveBack.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN){
-                    convenienceRobot.setRawMotors(2, 80, 2, 80);
+                    ollie.getConvenienceRobot().setRawMotors(2, 80, 2, 80);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    convenienceRobot.stop();
+                    ollie.stopDrive();
                 }
                 return false;
             }
         });
 
 
-//        com.erz.joysticklibrary.JoyStick joyStickTmp;
-//        joyStickTmp = (com.erz.joysticklibrary.JoyStick) findViewById(R.id.joy1);
-//        joyStickTmp.setButtonDrawable(R.drawable.image_button2);
-//        joyStickTmp.setAlpha(0.8f);
-//        com.erz.joysticklibrary.JoyStick.JoyStickListener joyStickListener = new com.erz.joysticklibrary.JoyStick.JoyStickListener() {
-//            @Override
-//            public void onMove(com.erz.joysticklibrary.JoyStick joyStick, double angle, double power) {
-//                System.out.println("Angle: " + joyStickTmp.getAngleDegrees() + "          Power: " + joyStickTmp.getPower());
-//            }
-//        };
-//        joyStickTmp.setListener(joyStickListener);
-
-
         layoutWithJoyStick.setOnTouchListener(new OnTouchListener() {
             public boolean onTouch(View arg0, MotionEvent arg1) {
-                if (!calibration) {
+                if(!ollie.isCalibration()){
                     joyStick.drawStick(arg1);
                     if (arg1.getAction() == MotionEvent.ACTION_UP) {
-                        convenienceRobot.stop();
+                        ollie.stopDrive();
                     } else {
-                        convenienceRobot.drive(joyStick.getStickAngle(), joyStick.getJoyStickPower());
-                        if (!startRide){
+                        ollie.drive(joyStick.getStickAngle(), joyStick.getJoyStickPower());
+                        if (!startRide && tcpClient != null){
                             startRide = true;
-                            startTime = SystemClock.uptimeMillis();
-                            customHandler.postDelayed(updateTimerThread, 0);
+                            tcpClient.sendMessageToServer(ServerRequest.START_RACE);
+                            btnExitToMainMenu.setEnabled(false);
                         }
                     }
                 } else {
                     joyStick.drawCalibrationStick(arg1);
-                    convenienceRobot.rotate(joyStick.getStickAngle());
+                    ollie.rotate(joyStick.getStickAngle());
                     System.out.println(joyStick.getStickAngle());
                 }
                 return true;
@@ -146,24 +105,13 @@ public class PlayingActivity extends AppCompatActivity {
         });
     }
 
-    private Runnable updateTimerThread = new Runnable() {
-
-        public void run() {
-
-            timeInMilliseconds = SystemClock.uptimeMillis() - startTime;
-
-            updatedTime = timeSwapBuff + timeInMilliseconds;
-
-            int secs = (int) (updatedTime / 1000);
-            int mins = secs / 60;
-            secs = secs % 60;
-            int milliseconds = (int) (updatedTime % 1000);
-            rideTime = "" + mins + ":"
-                    + String.format("%02d", secs) + ":"
-                    + String.format("%03d", milliseconds);
-            customHandler.postDelayed(this, 0);
+    public void endGame(View view){
+        if (startRide && tcpClient != null){
+            tcpClient.sendMessageToServer(ServerRequest.END_RACE);
+            btnExitToMainMenu.setEnabled(true);
+            finish();
         }
-    };
+    }
 
 
     private void connectToOllie(){
@@ -172,8 +120,8 @@ public class PlayingActivity extends AppCompatActivity {
             @Override
             protected Void doInBackground(Void... params) {
                 while ( true ) {
-                    if ( convenienceRobot != null ) {
-                        if ( convenienceRobot.isConnected() ) break;
+                    if ( ollie.getConvenienceRobot() != null ){
+                        if ( ollie.getConvenienceRobot().isConnected() ) break;
                     }
                 }
                 return null;
@@ -186,127 +134,14 @@ public class PlayingActivity extends AppCompatActivity {
         }.execute();
     }
 
-    private void startDiscovery(){
-        discoveryAgent = new DiscoveryAgentLE();
-        discoveryAgent.addDiscoveryListener(discoveryAgentEventListener);
-        discoveryAgent.addRobotStateListener(robotChangedStateListener);
-        try {
-            discoveryAgent.startDiscovery(this);
-        } catch (DiscoveryException e){
-            Log.e("Connecting", "Failed to start discovery because " + e);
-            e.printStackTrace();
-        }
-    }
-
-    private void stopDiscovery(){
-        discoveryAgent.stopDiscovery();
-        discoveryAgent.removeDiscoveryListener(discoveryAgentEventListener);
-        discoveryAgent.removeRobotStateListener(robotChangedStateListener);
-        discoveryAgent = null;
-    }
-
-
-    private DiscoveryAgentEventListener discoveryAgentEventListener = new DiscoveryAgentEventListener() {
-        @Override
-        public void handleRobotsAvailable(List<Robot> robots) {
-            Log.i("Connecting", "Found" + robots);
-        }
-    };
-
-    private RobotChangedStateListener robotChangedStateListener = new RobotChangedStateListener() {
-        @Override
-        public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
-            switch (robotChangedStateNotificationType) {
-                case Online:
-                    SensorFlag sensorFlag = new SensorFlag(
-                            SensorFlag.SENSOR_FLAG_VELOCITY,
-                            SensorFlag.SENSOR_FLAG_LOCATOR,
-                            SensorFlag.SENSOR_FLAG_QUATERNION,
-                            SensorFlag.SENSOR_FLAG_ACCELEROMETER_NORMALIZED,
-                            SensorFlag.SENSOR_FLAG_GYRO_NORMALIZED,
-                            SensorFlag.SENSOR_FLAG_MOTOR_BACKEMF_NORMALIZED,
-                            SensorFlag.SENSOR_FLAG_ATTITUDE);
-
-                    Log.i("Connecting", robot + " Online !");
-                    convenienceRobot = new Ollie(robot);
-                    stopDiscovery();
-                    convenienceRobot.setLed(0.f, 1.f, 0.f);
-
-
-//                    convenienceRobot.enableStabilization(false);
-                    convenienceRobot.enableCollisions(true);
-                    convenienceRobot.enableSensors(sensorFlag, SensorControl.StreamingRate.STREAMING_RATE20);
-                    convenienceRobot.addResponseListener(responseListener);
-                    break;
-            }
-        }
-    };
-
-    private ResponseListener responseListener = new ResponseListener() {
-        @Override
-        public void handleResponse(DeviceResponse deviceResponse, Robot robot) {
-
-        }
-
-        @Override
-        public void handleStringResponse(String s, Robot robot) {
-
-        }
-
-
-
-        @Override
-        public void handleAsyncMessage(AsyncMessage asyncMessage, Robot robot) {
-            if (asyncMessage instanceof DeviceSensorAsyncMessage) {
-                DeviceSensorAsyncMessage message = (DeviceSensorAsyncMessage) asyncMessage;
-
-                if (message.getSensorDataFrames() == null
-                        || message.getSensorDataFrames().isEmpty()
-                        || message.getSensorDataFrames().get(0) == null) return;
-
-                DeviceSensorsData data = message.getSensorDataFrames().get(0);
-
-                double x = data.getAccelerometerData().getFilteredAcceleration().x;
-                double y = data.getAccelerometerData().getFilteredAcceleration().y;
-                double z = data.getAccelerometerData().getFilteredAcceleration().z;
-
-                double tmp = z * 10;
-                if ( tmp > -0.15 && tmp < 0.15 && collisionDetected && toCollisionCountDetectReset > 0) {
-//                    tcpClient.sendMessageToServer("FINISH     " + countCollisionOnMeta);
-                    finishRide = true;
-                    toCollisionCountDetectReset = 0;
-
-                    timeSwapBuff += timeInMilliseconds;
-                    customHandler.removeCallbacks(updateTimerThread);
-
-                    tcpClient.sendMessageToServer(clientModel.getActualUserName() + " - result: " + rideTime);
-                    System.out.println(clientModel.getActualUserName() + " - result: " + rideTime);
-                } else {
-                    if ( toCollisionCountDetectReset <= 0 )
-                        collisionDetected = false;
-                    else toCollisionCountDetectReset--;
-                }
-
-            }
-
-            if( asyncMessage instanceof CollisionDetectedAsyncMessage) {
-                //Collision occurred.
-                if(!collisionDetected) {
-                    collisionDetected = true;
-                    toCollisionCountDetectReset = 100;
-                }
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            }
-        }
-    };
-
-
 
     private void initialElements(){
         layoutWithJoyStick = (RelativeLayout) findViewById(R.id.layout_joystick);
         chbCalibrate = (CheckBox) findViewById(R.id.chbCalibrate);
         progressBarConnecting = (ProgressBar) findViewById(R.id.progressBarConnecting);
         labelConnecting = (TextView) findViewById(R.id.labelConnecting);
+        btnEndRace = (Button) findViewById(R.id.btnEndRace);
+        btnExitToMainMenu = (Button) findViewById(R.id.btnExitToMainMenu);
     }
 
     private void initialJoyStick(){
@@ -331,6 +166,9 @@ public class PlayingActivity extends AppCompatActivity {
         layoutWithJoyStick.setVisibility(View.VISIBLE);
         progressBarConnecting.setVisibility(View.GONE);
         labelConnecting.setVisibility(View.GONE);
+        if (!freeRide) {
+            btnEndRace.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showConnectingElements(){
@@ -338,6 +176,7 @@ public class PlayingActivity extends AppCompatActivity {
         layoutWithJoyStick.setVisibility(View.GONE);
         progressBarConnecting.setVisibility(View.VISIBLE);
         labelConnecting.setVisibility(View.VISIBLE);
+        btnEndRace.setVisibility(View.GONE);
     }
 
     @Override
@@ -355,13 +194,8 @@ public class PlayingActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-
-        if (convenienceRobot != null) {
-            convenienceRobot.disconnect();
-            convenienceRobot = null;
-        }
-        if (tcpClient != null)
-            tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
+//        if (tcpClient != null)
+//            tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
         super.onDestroy();
     }
 

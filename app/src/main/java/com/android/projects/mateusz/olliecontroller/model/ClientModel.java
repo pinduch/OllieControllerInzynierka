@@ -11,7 +11,6 @@ public class ClientModel {
 
     private InetAddress hostAddress;
     private String serverResponse = "TEST";
-    private String actualUserName;
 
     private static ClientModel instance;
 
@@ -42,11 +41,4 @@ public class ClientModel {
         this.serverResponse = serverResponse;
     }
 
-    public String getActualUserName() {
-        return actualUserName;
-    }
-
-    public void setActualUserName(String actualUserName) {
-        this.actualUserName = actualUserName;
-    }
 }
