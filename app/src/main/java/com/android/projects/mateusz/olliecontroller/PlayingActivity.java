@@ -119,6 +119,11 @@ public class PlayingActivity extends AppCompatActivity {
         new AsyncTask<Void, Void, Void>(){
 
             @Override
+            protected void onPreExecute(){
+                btnMoveBack.setEnabled(false);
+            }
+
+            @Override
             protected Void doInBackground(Void... params) {
                 while ( true ) {
                     if ( ollie.getConvenienceRobot() != null ){
@@ -132,6 +137,7 @@ public class PlayingActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Void result) {
                 showPlayingElements();
+                btnMoveBack.setEnabled(true);
             }
         }.execute();
     }
@@ -144,6 +150,7 @@ public class PlayingActivity extends AppCompatActivity {
         labelConnecting = (TextView) findViewById(R.id.labelConnecting);
         btnEndRace = (Button) findViewById(R.id.btnEndRace);
         btnExitToMainMenu = (Button) findViewById(R.id.btnExitToMainMenu);
+        btnMoveBack = (Button) findViewById(R.id.btnMoveBack);
     }
 
     private void initialJoyStick(){
@@ -198,8 +205,6 @@ public class PlayingActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-//        if (tcpClient != null)
-//            tcpClient.sendMessageToServer(ServerRequest.DISCONNECT);
         super.onDestroy();
     }
 

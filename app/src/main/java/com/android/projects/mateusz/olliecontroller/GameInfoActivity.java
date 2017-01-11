@@ -83,7 +83,6 @@ public class GameInfoActivity extends AppCompatActivity {
      * @param view
      */
     public void checkUsernameAvailability(View view){
-//        chbUsernameAvailable.setChecked(!chbUsernameAvailable.isChecked());
         new AsyncTask<Void, Void, Void>() {
 
             String username;

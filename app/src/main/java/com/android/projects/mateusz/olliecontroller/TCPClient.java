@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
  * TCP Client class.
  */
 
-public class TCPClient extends Thread implements Serializable {
+public class TCPClient extends Thread {
 
     public enum TcpConnectionState {CONNECT, DISCONNECT}
 
@@ -47,7 +47,6 @@ public class TCPClient extends Thread implements Serializable {
     public static TCPClient getInstance(){
         if (instance != null){
             return instance;
-//            instance = new TCPClient();
         } else
             return null;
 

@@ -103,7 +103,10 @@ public class OllieController {
     }
 
     public boolean isDiscovery(){
-        if (discoveryAgent.isDiscovering()) return true;
+        if (discoveryAgent != null) {
+            if (discoveryAgent.isDiscovering()) return true;
+            else return false;
+        }
         else return false;
     }
 
@@ -145,19 +148,14 @@ public class OllieController {
     private ResponseListener responseListener = new ResponseListener() {
         @Override
         public void handleResponse(DeviceResponse deviceResponse, Robot robot) {
-
         }
 
         @Override
         public void handleStringResponse(String s, Robot robot) {
-
         }
-
-
 
         @Override
         public void handleAsyncMessage(AsyncMessage asyncMessage, Robot robot) {
-
             if( asyncMessage instanceof CollisionDetectedAsyncMessage) {
                 //Collision occurred.
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");

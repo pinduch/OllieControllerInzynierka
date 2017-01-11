@@ -10,7 +10,6 @@ public class ServerRequest {
     public static final String DISCONNECT = "DISCONNECT";
     public static final String CHECK_USERNAME = "CHECK USERNAME";
     public static final String SERVER_SHUTDOWN = "SERVER SHUTDOWN";
-    public static final String OK = "OK";
     public static final String TRUE = "TRUE";
     public static final String FALSE = "FALSE";
     public static final String START_RACE = "START";
